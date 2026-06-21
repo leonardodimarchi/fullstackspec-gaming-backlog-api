@@ -120,5 +120,4 @@ Ao adicionar um jogo, o status default é `WANT_TO_PLAY_NEXT`. Tempos esperados 
 
 ## Postman
 
-Importe a collection em `[postman/gaming-backlog-api.postman_collection.json](postman/gaming-backlog-api.postman_collection.json)`.
-
+Importe a collection: [postman/gaming-backlog-api.postman_collection.json](postman/gaming-backlog-api.postman_collection.json).

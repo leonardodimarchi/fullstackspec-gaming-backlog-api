@@ -1,0 +1,642 @@
+{
+  "info": {
+    "_postman_id": "gaming-backlog-api-collection",
+    "name": "Gaming Backlog API",
+    "description": "NestJS Gaming Backlog API — auth, games (IGDB), user backlog, admin.\n\n**Setup:**\n1. Import this collection\n2. Set `baseUrl` if needed (default `http://localhost:3000/api`)\n3. Run **Auth → Login (Admin)** or **Register** — saves `accessToken` automatically\n4. Use other folders (Bearer auth inherited from collection)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "userGameId",
+      "value": ""
+    },
+    {
+      "key": "igdbId",
+      "value": "1942"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Public endpoints — no JWT required.",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Creates a USER account. Returns accessToken + user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  }",
+                  "  if (json.user?.id) {",
+                  "    pm.collectionVariables.set('userId', json.user.id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with seed admin credentials (.env ADMIN_EMAIL / ADMIN_PASSWORD). Saves accessToken."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  }",
+                  "  if (json.user?.id) {",
+                  "    pm.collectionVariables.set('userId', json.user.id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (User)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  }",
+                  "  if (json.user?.id) {",
+                  "    pm.collectionVariables.set('userId', json.user.id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Games",
+      "description": "IGDB discovery — requires JWT.",
+      "item": [
+        {
+          "name": "Popular (Home)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/games/popular?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["games", "popular"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "1–50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List / Search",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/games?q=zelda&page=1&limit=20&sort=popularity&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["games"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "zelda",
+                  "description": "Search text"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "popularity",
+                  "description": "popularity | name | releaseDate | rating | hypes"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "asc | desc"
+                },
+                {
+                  "key": "genreId",
+                  "value": "12",
+                  "disabled": true
+                },
+                {
+                  "key": "platformId",
+                  "value": "6",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "2023",
+                  "disabled": true
+                },
+                {
+                  "key": "minRating",
+                  "value": "80",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Metadata — Genres",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/games/metadata/genres?q=rpg",
+              "host": ["{{baseUrl}}"],
+              "path": ["games", "metadata", "genres"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "rpg",
+                  "description": "Filter by name or slug (case-insensitive)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Metadata — Platforms",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/games/metadata/platforms?q=playstation",
+              "host": ["{{baseUrl}}"],
+              "path": ["games", "metadata", "platforms"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "playstation",
+                  "description": "Filter by name or slug (case-insensitive)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Game Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/games/{{igdbId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["games", "{{igdbId}}"]
+            },
+            "description": "Cache-first game detail by IGDB id."
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Games (Backlog)",
+      "description": "Authenticated user's backlog.",
+      "item": [
+        {
+          "name": "Counts (Tab badges)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user-games/counts",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games", "counts"]
+            }
+          }
+        },
+        {
+          "name": "List — Playing",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user-games?status=PLAYING&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PLAYING"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List — Want to Play Next",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user-games?status=WANT_TO_PLAY_NEXT&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "WANT_TO_PLAY_NEXT"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List — Watch List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user-games?status=WATCH_LIST&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "WATCH_LIST"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List — Finished",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user-games?status=FINISHED&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "FINISHED"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List — Abandoned",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user-games?status=ABANDONED&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ABANDONED"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get One",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user-games/{{userGameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games", "{{userGameId}}"]
+            }
+          }
+        },
+        {
+          "name": "Add to Backlog",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"igdbId\": {{igdbId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-games",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games"]
+            },
+            "description": "Only igdbId required. Default status: WANT_TO_PLAY_NEXT. Expected times from IGDB."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) {",
+                  "    pm.collectionVariables.set('userGameId', json.id);",
+                  "  }",
+                  "  if (json.igdbId) {",
+                  "    pm.collectionVariables.set('igdbId', String(json.igdbId));",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update (e.g. move to Playing)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PLAYING\",\n  \"notes\": \"Started today\",\n  \"expectedTime\": 40,\n  \"expectedTimeForAllContent\": 80,\n  \"playedTime\": 5,\n  \"availability\": \"PURCHASED\",\n  \"startDate\": \"2026-03-21T00:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-games/{{userGameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games", "{{userGameId}}"]
+            },
+            "description": "Cannot change igdbId. Status: PLAYING | WANT_TO_PLAY_NEXT | WATCH_LIST | FINISHED | ABANDONED. Availability: PURCHASED | RECEIVED_FREE | FREE_TO_PLAY | DONT_HAVE | SUBSCRIPTION."
+          }
+        },
+        {
+          "name": "Remove from Backlog",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/user-games/{{userGameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-games", "{{userGameId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin)",
+      "description": "Requires ADMIN role JWT.",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"New User\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Dashboard statistics — requires ADMIN role JWT.",
+      "item": [
+        {
+          "name": "Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "statistics"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

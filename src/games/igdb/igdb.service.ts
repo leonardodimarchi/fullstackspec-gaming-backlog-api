@@ -25,11 +25,14 @@ export class IgdbService {
   ): Promise<IgdbGame[]> {
     const whereClause = filters.length ? `where ${filters.join(' & ')};` : '';
     const searchClause = query ? `search "${query.replace(/"/g, '')}";` : '';
+    const sortClause = query.trim()
+      ? ''
+      : `sort ${sortField} ${sortOrder};`;
     const body = `
       fields id,name,slug,summary,cover.url,genres.name,platforms.name,first_release_date,total_rating,hypes;
       ${searchClause}
       ${whereClause}
-      sort ${sortField} ${sortOrder};
+      ${sortClause}
       limit ${limit};
       offset ${offset};
     `;

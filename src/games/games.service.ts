@@ -9,6 +9,7 @@ import { ListGamesQueryDto } from './dto/list-games-query.dto';
 import { mapIgdbTimeToBeatToExpectedTimes } from './igdb/igdb-time.mapper';
 import { IgdbExpectedTimes, IgdbGame } from './igdb/igdb.types';
 import { IgdbService } from './igdb/igdb.service';
+import { sortPlatformsByPopularity } from './igdb/platform-order';
 import {
   GameListCache,
   GameListCacheDocument,
@@ -155,7 +156,7 @@ export class GamesService implements OnModuleInit {
     const items = await this.getMetadata(PLATFORMS_CACHE_KEY, () =>
       this.igdbService.getPlatforms(),
     );
-    return this.filterMetadata(items, q);
+    return this.filterMetadata(sortPlatformsByPopularity(items), q);
   }
 
   private filterMetadata(
